@@ -1,14 +1,12 @@
 package com.example.demo
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.http.MediaType
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.messaging.rsocket.retrieveFlux
 import org.springframework.util.MimeType
-import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -16,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -34,17 +32,14 @@ class TestResource {
     private lateinit var webClient: WebClient
 
     @PostMapping("/api/v2/uploads.json", consumes = [MediaType.ALL_VALUE])
-    fun aa(@RequestParam filename: String, @RequestBody(required = false) data: Flux<DataBuffer>?) =
-        data?.flatMap {
-            println("New Data: ${it.toString(Charsets.UTF_8)}")
-            Mono.create<Result> { emitter ->
-                println("Filename: $filename")
-                emitter.success(Result(listOf(Attachment(20, filename))))
-            }
-        }?.next()
+    fun aa(@RequestParam filename: String, @RequestBody(required = false) data: ByteArray?): Result {
+        println("New Data: ${data?.toString(Charsets.UTF_8)}")
+        println("Filename: $filename")
+        return Result(listOf(Attachment(20, filename)))
+    }
 
     @MessageMapping("test")
-    fun aa(@Payload @Validated data: Flux<DataBuffer>): Mono<String> =
+    fun aa(@Payload data: Flux<ByteArray>): Flux<UploadResponseVM> =
         webClient
             .post()
             .uri(
@@ -55,18 +50,18 @@ class TestResource {
                     .toUri()
             )
             .contentType(MediaType("application", "binary"))
-            .body(data, DataBuffer::class.java)
-            .exchangeToMono { response ->
-                response.bodyToMono<String>()
-            }
+            .body(Flux.just("Test", "Test").map { it.encodeToByteArray() }, ByteArray::class.java)
+            .retrieve()
+            .bodyToFlux<Result>()
+            .map { UploadResponseVM(it.attachments.first().id.toString()) }
 
     @GetMapping("/test-upload")
     fun test() = requester
         .map { client ->
             client
-                .route("upload.file")
+                .route("test")
                 .metadata("test", MimeType.valueOf("message/x.file.name"))
-                .data(Flux.just("data", "test", "dat2"))
+                .data(Flux.just("data", "test", "dat2").map { it.encodeToByteArray() })
         }
         .flatMapMany { client -> client.retrieveFlux<UploadResponseVM>() }
 

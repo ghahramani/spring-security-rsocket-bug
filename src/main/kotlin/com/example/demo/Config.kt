@@ -41,7 +41,7 @@ class Config {
 
         val strategies = ExchangeStrategies
             .builder()
-            .codecs { configurer -> configurer.defaultCodecs().maxInMemorySize(5242880) }
+            .codecs { configurer -> configurer.defaultCodecs().maxInMemorySize(524288000) }
             .build()
         return WebClient
             .builder()
@@ -72,7 +72,7 @@ class Config {
             val requester = builder
                 .rsocketConnector { connector -> connector.reconnect(Retry.fixedDelay(2, Duration.ofSeconds(2))) }
                 .rsocketStrategies(strategies)
-                .transport(TcpClientTransport.create("localhost", 9090))
+                .transport(TcpClientTransport.create("localhost", 9998))
             emitter.success(requester)
         }
 

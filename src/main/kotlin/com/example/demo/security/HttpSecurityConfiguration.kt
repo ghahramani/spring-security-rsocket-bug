@@ -32,12 +32,6 @@ class HttpSecurityConfiguration {
 
             .authorizeExchange()
 
-            .pathMatchers(OPTIONS, "/**").permitAll()
-
-            .pathMatchers("/api/**").authenticated()
-            .pathMatchers("/actuator/prometheus").permitAll()
-            .pathMatchers("/actuator/health").permitAll()
-
             .anyExchange().permitAll()
 
             .and()
