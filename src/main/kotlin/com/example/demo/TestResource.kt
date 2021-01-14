@@ -50,7 +50,7 @@ class TestResource {
                     .toUri()
             )
             .contentType(MediaType("application", "binary"))
-            .body(Flux.just("Test", "Test").map { it.encodeToByteArray() }, ByteArray::class.java)
+            .body(Flux.just("Test", "Test").map { it.encodeToByteArray() }.log(), ByteArray::class.java)
             .retrieve()
             .bodyToFlux<Result>()
 
@@ -66,12 +66,15 @@ class TestResource {
                     .toUri()
             )
             .contentType(MediaType("application", "binary"))
-            .body(data, ByteArray::class.java)
+            .body(
+                data.log(),
+                ByteArray::class.java
+            )
             .retrieve()
             .bodyToFlux<Result>()
 
     @GetMapping("/{route}")
-    fun notWorkingTest(@PathVariable route: String) = requester
+    fun testResource(@PathVariable route: String) = requester
         .map { client ->
             client
                 .route(route)
