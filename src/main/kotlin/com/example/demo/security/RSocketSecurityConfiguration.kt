@@ -30,16 +30,13 @@ class RSocketSecurityConfiguration {
 
     @Bean
     fun authorization(
-        security: RSocketSecurity,
-        authenticationManager: ReactiveAuthenticationManager
+        security: RSocketSecurity
     ): PayloadSocketAcceptorInterceptor = security
         .authorizePayload { spec: AuthorizePayloadsSpec ->
             logger.info("Configuring RSocket authorization and jwt")
             spec
-                .route("api.**").authenticated()
                 .anyExchange().permitAll()
         }
-        .jwt { customizer -> customizer.authenticationManager(authenticationManager) }
         .build()
 
 }

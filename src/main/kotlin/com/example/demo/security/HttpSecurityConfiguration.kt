@@ -1,9 +1,7 @@
 package com.example.demo.security
 
-import com.example.demo.security.jwt.SecurityContextRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.context.annotation.Bean
-import org.springframework.http.HttpMethod.OPTIONS
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
@@ -19,9 +17,7 @@ class HttpSecurityConfiguration {
 
     @Bean
     fun filter(
-        http: ServerHttpSecurity,
-        manager: ReactiveAuthenticationManager,
-        repository: SecurityContextRepository
+        http: ServerHttpSecurity
     ): SecurityWebFilterChain {
 
         return http
@@ -37,10 +33,8 @@ class HttpSecurityConfiguration {
             .and()
 
             .exceptionHandling()
-            .and()
 
-            .securityContextRepository(repository)
-            .authenticationManager(manager)
+            .and()
 
             .build()
     }
